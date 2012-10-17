@@ -1,6 +1,6 @@
 __author__ = '0mic'
 __version__ = '0.7.0'
-__build__ = 1
+__build__ = '3'
 
 import sys
 import logging 
