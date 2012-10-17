@@ -2,8 +2,7 @@ import pymongo
 import json
 import multiprocessing
 from urllib import urlencode
-from tornado import httpclient
-from tornado import ioloop 
+from tornado import httpclient, ioloop 
 from toolkit import observer
 
 class Puller(observer.Publisher):
