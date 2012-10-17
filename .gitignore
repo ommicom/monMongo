@@ -1,0 +1,8 @@
+.git/*
+.settings/*
+.project
+.pydevproject
+*.pyc
+*.log
+note.txt
+!.gitignore
