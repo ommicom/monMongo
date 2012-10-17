@@ -66,7 +66,7 @@ class Pusher(observer.Subscriber):
                     self.__log.debug(data)
         except IOError as err:
             if self.__log:
-                self.__log.error('Connection with REST-server not set. {0}:{1}\nmonMongo will try to connect later. Data not be remove from the queue and will try send later.'.format(type(err), err))
+                self.__log.error('Connection with http-server not set. {0}:{1}\nmonMongo will try to connect later. Data not be remove from the queue and will try send later.'.format(type(err), err))
             return
         except httpclient.HTTPError as err:
             if self.__log:
