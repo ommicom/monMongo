@@ -5,7 +5,7 @@ __build__ = '1'
 import sys
 import logging
 from tornado import ioloop, httpserver
-from settings import log_settings, http_settings, mongo_settings
+from settings import log_settings, http_settings, mongo_settings, table_val, graf_val
 from sr_stat import Server
 
 def main():
@@ -30,7 +30,8 @@ def main():
     
     log.info('Start monMongo-server ver.{0}.{1} on {2}:{3}'.format(__version__, __build__, http_server, http_port))
     
-    http = httpserver.HTTPServer(request_callback=Server(mongo_server, mongo_port, mongo_database))
+    val = dict(table=table_val, graf=graf_val)
+    http = httpserver.HTTPServer(request_callback=Server(mongo_server, mongo_port, mongo_database, **val))
     http.listen(http_port, http_server)
     ioloop.IOLoop.instance().start()
     

@@ -1,0 +1,58 @@
+<html>
+<head>
+    <title>monMongo</title>
+    <script type="text/javascript" src="{{ static_url('jquery-1.8.2.js') }}"></script>
+    <script type="text/javascript" src="{{ static_url('jquery-ui-1.9.0.custom.min.js') }}"></script>
+    <link rel="stylesheet" type="text/css" href="{{ static_url('css/jquery-ui-1.9.0.custom.min.css') }}">
+    <script>
+        $(function() {
+            $( "#from" ).datepicker({
+                defaultDate: "+1d",
+                changeMonth: true,
+                changeYear: true,
+                numberOfMonths: 2,
+                dateFormat: "yy-m-d",
+                showOn: "button",
+                buttonImage: "{{ static_url('images/calendar.gif') }}",
+                buttonImageOnly: true,
+                onSelect: function( selectedDate ) {
+                    $( "#to" ).datepicker( "option", "minDate", selectedDate );
+                }
+            });
+            $( "#to" ).datepicker({
+                defaultDate: "+2d",
+                changeMonth: true,
+                changeYear: true,
+                numberOfMonths: 2,
+                dateFormat: "yy-m-d",
+                showOn: "button",
+                buttonImage: "{{ static_url('images/calendar.gif') }}",
+                buttonImageOnly: true,
+                onSelect: function( selectedDate ) {
+                    $( "#from" ).datepicker( "option", "maxDate", selectedDate );
+                }
+            });
+            $("input[type=button], a, button" )
+                    .button()
+                    .click(function() {
+                        if($("#from").val()!="" && $("#to").val()!=""){
+                            $("#form_get_graf").submit()
+                        }
+                        else{
+                            $("#message_lab").text("Range of date not defined");
+                        }
+            });
+        });
+    </script>
+</head>
+<body>
+    <form method="get" action="GET_GRAF" name="form_get_graf" id="form_get_graf">
+        <label for="from">From</label>
+        <input type="text" id="from" name="from" />
+        <label for="to">To</label>
+        <input type="text" id="to" name="to" />
+        <input type="button" value="Submit  ">
+    </form>
+    <lable id="message_lab"></lable>
+</body>
+</html>
