@@ -1,7 +1,6 @@
 import os
 import json
 import datetime
-import re
 import asyncmongo
 from tornado import web, gen
 
