@@ -31,7 +31,9 @@ class BaseHandler(web.RequestHandler):
     def get_fields_(self, dst, prefix=None):  
         pre_el = dict()
         for el in dst:
-            pre_el.update(dict([prefix+'.'+param_nm, 1] for param, param_nm in el.iteritems() if param=='param'))        
+            pre_el.update(dict([('{0}.{1}').format(prefix, param_nm), 1] for param, param_nm in el.iteritems() if param=='param'))
+            #pre_el.update(dict([prefix+'.'+param_nm, 1] for param, param_nm in el.iteritems() if param=='param'))
+        pre_el.update({'_id':0})        
         return pre_el
         
                             
@@ -58,25 +60,28 @@ class GetStatHandler(BaseHandler):
 class GetGrafHandler(BaseHandler):
     @web.asynchronous
     @gen.engine
-    def get(self):       
+    def get(self):  
+        res = dict()
+             
         cmd_host_list = {'distinct':'statistics','key':'host'}
         cmd_mongo_list = {'distinct':'statistics','key':'mongodb','query':{}}        
                  
         from_ = self.get_argument('from', datetime.datetime.now().strftime('%Y-%m-%d'))
         to_ = self.get_argument('to', (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))        
-        fields = self.get_fields_(self.application.val['graf'], 'statistic')
+        fields = self.get_fields_(self.application.val['graf'], 'statistic')                        
         
-        hosts_ = yield gen.Task(self.mongodb.command, cmd_host_list)
+        hosts_ = yield gen.Task(self.mongodb.command, cmd_host_list)        
         hosts = hosts_[0][0]['values']        
-        for host in hosts:                        
+        for host in hosts:      
+            res[host] = dict()                  
             cmd_mongo_list['query'] = {'host':host}
             mongos_ = yield gen.Task(self.mongodb.command, cmd_mongo_list)
             mongos = mongos_[0][0]['values']
             for mongo in mongos:
-                print host, mongo, from_, to_, fields
+                #res[host][mongo] = dict()
+                #print host, mongo, from_, to_, fields
                 #, 'statistic.localTime':{'$gte':from_, '$lt':to_}
-                stats_ = yield gen.Task(self.mongodb.statistics.find,{'host':host, 'mongodb':mongo}, sort=[('statistic.localTime', 1)], fields=fields)
-                print stats_
-        
-        
-        self.render('graf.html')
+                stats_ = yield gen.Task(self.mongodb.statistics.find,{'host':host, 'mongodb':mongo, 'statistic.localTime':{'$gte':'{0}T00:00:00.000000'.format(from_), '$lt':'{0}T00:00:00.000000'.format(to_)}}, sort=[('statistic.localTime', 1)],  fields=fields)
+                res[host][mongo] = stats_
+                
+        self.render('graf.html', statistics = res)
