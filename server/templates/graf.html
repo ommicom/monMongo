@@ -62,8 +62,7 @@
         						[7,33.6],[9,85.9]
         						] ]);	
         });
-        function draw_graf(plot_name, plot_data, plot_title, plot_series){
-        	alert(plot_name);
+        function draw_graf(plot_name, plot_data, plot_title, plot_series){        	
         	$.jqplot(plot_name,  plot_data ,
         			{
         				title: plot_title,
@@ -102,10 +101,10 @@
     			var dbs_list = new Array();
 				{% set dbs = (dbs for dbs in statistics[host].keys()) %}
 				{% for db in dbs %}
-					dbs_list.push("{label:'{{db}}'}");
-				{% end %}				    			    			
-				alert(dbs_list);
-    			draw_graf("plot_{{host_id}}_{{graf_title}}", [[0,1],[2,3]], dbs_list);
+					dbs_list.push({label:"{{db}}"});
+				{% end %}		
+				alert(dbs_list);		    			    			
+    			draw_graf("plot_{{host_id}}_{{graf_title}}",[[0,1],[2,3],[4,3],[5,6]],"{{graf_title}}",dbs_list);
     			</script>
     		{% end %}
     	{% end %}    	
