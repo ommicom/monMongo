@@ -94,16 +94,21 @@
   	{% for host in hosts %}    
     	{{ host }}<br>
     	{% set host_id = "".join("".join(host.split(":")).split(".")) %}
-    	{% for graf in graf_l %} 
+    	{% for graf in graf_l %}
+    		<script>
+    			var series = new Array();
+    		</script> 
     		{% for graf_title in graf.keys() %}
     			<div id="plot_{{host_id}}_{{graf_title}}"></div>
     			<script>
     			var dbs_list = new Array();
 				{% set dbs = (dbs for dbs in statistics[host].keys()) %}
 				{% for db in dbs %}
-					dbs_list.push({label:"{{db}}"});
-				{% end %}		
-				alert(dbs_list);		    			    			
+					dbs_list.push({label:"{{db}}"});					
+					{% set stats = (stats for stats in statistics[host][db][0]) %}
+					{% set stats %}
+					
+				{% end %}							    			    		
     			draw_graf("plot_{{host_id}}_{{graf_title}}",[[0,1],[2,3],[4,3],[5,6]],"{{graf_title}}",dbs_list);
     			</script>
     		{% end %}
