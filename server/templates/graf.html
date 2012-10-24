@@ -15,7 +15,7 @@
     				2:{"globalLock":("globalLock.currentQueue.readers", "globalLock.currentQueue.writers")}
     				}
     %}
-    {% set graf_l = (graf_l for graf_l in OrderedDict(sorted(grafs.items(), key=lambda v: v[0])).values()) %}        
+    {% set graf_l = [graf_l for graf_l in OrderedDict(sorted(grafs.items(), key=lambda v: v[0])).values()] %}        
     <script>
         $(function() {
             $( "#from" ).datepicker({
@@ -93,26 +93,49 @@
   	{% set hosts = statistics.keys() %}
   	{% for host in hosts %}    
     	{{ host }}<br>
-    	{% set host_id = "".join("".join(host.split(":")).split(".")) %}
-    	{% for graf in graf_l %}
-    		<script>
-    			var series = new Array();
-    		</script> 
-    		{% for graf_title in graf.keys() %}
-    			<div id="plot_{{host_id}}_{{graf_title}}"></div>
-    			<script>
-    			var dbs_list = new Array();
-				{% set dbs = (dbs for dbs in statistics[host].keys()) %}
-				{% for db in dbs %}
-					dbs_list.push({label:"{{db}}"});					
-					{% set stats = (stats for stats in statistics[host][db][0]) %}
-					{% set stats %}
-					
-				{% end %}							    			    		
-    			draw_graf("plot_{{host_id}}_{{graf_title}}",[[0,1],[2,3],[4,3],[5,6]],"{{graf_title}}",dbs_list);
-    			</script>
-    		{% end %}
-    	{% end %}    	
+    	{% set host_id = "".join("".join(host.split(":")).split(".")) %}    	     	
+		{% for db in statistics[host].keys() %}
+			{{ db }}<br>			
+			{% for graf in graf_l %}
+				{% for graf_title, graf_params in graf.items() %}				
+					<div id="plot_{{host_id}}_{{db}}_{{graf_title}}"></div>
+					<script>
+						var series = new Array();
+					</script>
+						{% set g_vals =(vals for vals in statistics[host][db][0]) %}
+							{% for vals in g_vals %}
+								{% set val = (val['statistic'] for val in vals) %}
+								{% for val_ in  val %}																		
+									{% set g_params = [g_params.split(".") for g_params in graf_params] %}									
+									{% for params in g_params %}
+										<script>
+											var vals = new Array();
+										</script>
+										{% set valf = val_ %}																											
+										{% for param in params %}
+											{% set valf = valf[param] %}																				 																	
+										{% end %}		
+										<script>			
+											var pre_arr = Array();
+											pre_arr.push({{valf}});
+											pre_arr.push("{{val_["localTime"]}}");																				
+											vals.push(pre_arr);																						
+										</script>											
+									{% end %}		
+																				
+								{% end %}							
+							{% end %}
+																		
+				{% end %}
+				<script>
+								series.push(vals);
+				</script>
+				
+			{% end %}
+			<script>
+					alert(series);
+				</script>
+		{% end %}    	
     {% end %}
 </body>
 </html>
