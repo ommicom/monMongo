@@ -1,8 +1,11 @@
+import sys
+import os
 import pymongo
 import json
 import multiprocessing
 from urllib import urlencode
 from tornado import httpclient, ioloop 
+sys.path.append(os.path.dirname(os.getcwd()))
 from toolkit import observer
 
 class Puller(observer.Publisher):

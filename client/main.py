@@ -1,12 +1,14 @@
 __author__ = '0mic'
 __version__ = '0.7.0'
-__build__ = '5'
+__build__ = '6'
 
 import sys
+import os
 import logging 
-from toolkit import mtimer
 from cl_stat import Puller, Pusher
 from settings import mongo_settings, common, http_settings, log_settings
+sys.path.append(os.path.dirname(os.getcwd()))
+from toolkit import mtimer
 
 def main():
     _LOG_FORMAT = logging.Formatter('%(asctime)s\t%(levelname)s\t%(lineno)d\t%(message)s')

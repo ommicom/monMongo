@@ -98,43 +98,40 @@
 			{{ db }}<br>			
 			{% for graf in graf_l %}
 				{% for graf_title, graf_params in graf.items() %}				
-					<div id="plot_{{host_id}}_{{db}}_{{graf_title}}"></div>
-					<script>
-						var series = new Array();
-					</script>
+					<div id="plot_{{host_id}}_{{db}}_{{graf_title}}"></div>					
 						{% set g_vals =(vals for vals in statistics[host][db][0]) %}
+						"!!"
+						<script>
+							var vals = new Array();							
+						</script>
 							{% for vals in g_vals %}
 								{% set val = (val['statistic'] for val in vals) %}
 								{% for val_ in  val %}																		
-									{% set g_params = [g_params.split(".") for g_params in graf_params] %}									
-									{% for params in g_params %}
-										<script>
-											var vals = new Array();
-										</script>
+									{% set g_params = [g_params.split(".") for g_params in graf_params] %}																
+									{% for params in g_params %}																													
 										{% set valf = val_ %}																											
 										{% for param in params %}
+										<script>
+											alert({{ param }});
+										</script>
 											{% set valf = valf[param] %}																				 																	
 										{% end %}		
-										<script>			
-											var pre_arr = Array();
-											pre_arr.push({{valf}});
-											pre_arr.push("{{val_["localTime"]}}");																				
-											vals.push(pre_arr);																						
-										</script>											
-									{% end %}		
-																				
-								{% end %}							
-							{% end %}
-																		
-				{% end %}
-				<script>
-								series.push(vals);
-				</script>
-				
+											{{ val_["localTime"] }} {{ valf }}	
+										<script>
+											var tmp_arr = new Array();
+											tmp_arr.push({{ val_["localTime"] }});
+											tmp_arr.push({{ valf }});
+											vals.push(tmp_arr);
+											alert(vals);
+										</script>																	
+									{% end %}																
+								{% end %}
+								<script>
+									//alert(vals);
+								</script>							
+							{% end %}																					
+				{% end %}								
 			{% end %}
-			<script>
-					alert(series);
-				</script>
 		{% end %}    	
     {% end %}
 </body>

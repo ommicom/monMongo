@@ -12,7 +12,7 @@ def main():
     _LOG_FORMAT = logging.Formatter('%(asctime)s\t%(levelname)s\t%(lineno)d\t%(message)s')
     _LOG_HANDLER = {'FILE':logging.FileHandler('monstat-server.log'),'CON':logging.StreamHandler(sys.stdout)}
     _LOG_LEVEL = {'DEBUG':logging.DEBUG,'INFO':logging.INFO,'WARNING':logging.WARNING,'ERROR':logging.ERROR,'CRITICAL':logging.CRITICAL,
-               'NOTSET':logging.NOTSET}
+                  'NOTSET':logging.NOTSET}
     
     log_handler = _LOG_HANDLER[log_settings.get('outlet', 'FILE').upper()]
     log_level = _LOG_LEVEL[log_settings.get('level', 'ERROR').upper()]
