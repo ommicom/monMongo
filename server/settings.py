@@ -6,9 +6,15 @@ table_val = {}
 #            'backgroundFlushing':({'param':'flushes', 'format':'{0:.0f}'}),
 #            'globalLock':({'param':{'currentQueue':({'param':'total','format':'{0:.0f}'})}})}
 
-graf_val = ({'param':'mem.virtual', 'format':'{0:.0f}', 'act':None},{'param':'mem.mapped', 'format':'{0:.0f}', 'act':None},
+_graf_val = ({'param':'mem.virtual', 'format':'{0:.0f}', 'act':None},{'param':'mem.mapped', 'format':'{0:.0f}', 'act':None},
             {'param':'backgroundFlushing.flushes', 'format':'{0:.0f}', 'act':None},
             {'param':'globalLock.currentQueue.total', 'format':'{0:.0f}', 'act':None},
             {'param':'globalLock.currentQueue.writers', 'format':'{0:.0f}', 'act':None},
             {'param':'globalLock.currentQueue.readers', 'format':'{0:.0f}', 'act':None},
             {'param':'localTime', 'format':'{0:.0f}', 'act':None})
+
+graf_val = (
+             {"group":"backgroundFlushing", "yaxis":("backgroundFlushing.flushes",),"xaxis":"localTime"},
+             {"group":"globalLock", "yaxis":("globalLock.currentQueue.total", "globalLock.currentQueue.readers","globalLock.currentQueue.total"),"xaxis":"localTime"},
+             {"group":"memory", "yaxis":("mem.virtual", "mem.mapped"),"xaxis":"localTime"},
+            )
