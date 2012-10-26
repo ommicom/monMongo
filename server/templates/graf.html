@@ -90,6 +90,16 @@
         <input type="button" value="Submit  ">
     </form>
     <lable id="message_lab"></lable>
-  	{{ statistics }}
+  	{% set hosts = (hosts for hosts in statistics.keys()) %}
+  	{% for host in hosts %}
+  		{{ host }}
+  		{% for db in statistics[host] %}
+  			{{db}}
+  			{% set stats = (stats for stats in statistics[host][db]) %}
+  			{% for grafs in stats%}
+  				{{ grafs }}
+  			{% end %}
+  		{% end %}  		
+  	{% end %}
 </body>
 </html>
