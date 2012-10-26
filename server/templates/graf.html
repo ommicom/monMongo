@@ -55,17 +55,17 @@
                         }
             });
         });
-        $(function(){
-        	$.jqplot("graf_exmpl", [ [
-        						[0,0], [1,2],
-        						[3,5.12],[5,13.1],
-        						[7,33.6],[9,85.9]
-        						] ]);	
-        });
-        function draw_graf(plot_name, plot_data, plot_title, plot_series){        	
+       
+        function draw_graf(plot_name, plot_data, plot_title, plot_series, xmin, xmax){        	
         	$.jqplot(plot_name,  plot_data ,
         			{
         				title: plot_title,
+        				axes:{xaxis:{renderer:$.jqplot.DateAxisRenderer,
+        							 tickOptions:{formatString:'%Y/%m/%d %H:%M:%S'},
+        							 min: xmin,
+        							 max: xmax
+        				            }
+        				     },
         				legend:{
         					show: true,
         					location: "ne",
@@ -79,7 +79,7 @@
         			}
         			);
         }
-    </script>
+    </script>    
 </head>
 <body>
     <form method="get" action="GET_GRAF" name="form_get_graf" id="form_get_graf">
@@ -90,6 +90,42 @@
         <input type="button" value="Submit  ">
     </form>
     <lable id="message_lab"></lable>
-  	{{ statistics }}
+  	{% for host, dbs in statistics.items() %}
+  		{{ host }}<br>
+  		{% for db, grafs in dbs.items() %}
+  			{{ db }}<br>
+  			<script>
+  				var series_vals = new Array();
+  			</script>
+  			{% for graf, stats in grafs.items() %}
+  				{% set plot_id = ''.join(''.join(host.split('.')).split(':')) %}
+  				{{ graf }}<br>
+  				<script>
+  					var series = new Array();
+  					var series_val = new Array();
+  				</script>
+  				{% for series_nm, stat in stats.items() %}
+  					<script>
+  						series.push({label:"{{series_nm}}"});  						  						
+  					</script>  					  					
+  					{% for xaxis, yaxis in stat.items() %}    									
+  						<script>
+  							series_val.push(["{{xaxis}}", {{yaxis}}]);
+  						</script>
+  					{% end %}
+  					<script>
+  						series_vals.push(series_val);
+  					</script>
+  				{% end %}
+  				<script>
+  					//alert(series_vals);
+  				</script>
+  				<div id="plot_{{plot_id}}_{{db}}_{{graf}}" style="width: 90%;"></div>  				
+  			<script>  				 
+  				draw_graf("plot_{{plot_id}}_{{db}}_{{graf}}", [series_val], "{{graf}}",series); 
+  			</script>
+  			{% end %}
+  		{% end %} 
+  	{% end %}  	
 </body>
 </html>
