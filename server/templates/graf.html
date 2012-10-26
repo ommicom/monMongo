@@ -9,13 +9,7 @@
     <script type="text/javascript" src="{{ static_url('jqplot.highlighter.min.js') }}"></script>
     <link rel="stylesheet" type="text/css" href="{{ static_url('css/jquery-ui-1.9.0.custom.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ static_url('css/jquery.jqplot.min.css') }}">
-    {% from collections import OrderedDict %}
-    {% set grafs = {0:{"backgroundFlushing":("backgroundFlushing.flushes",)},
-    				1:{"mem":("mem.virtual","mem.mapped")},
-    				2:{"globalLock":("globalLock.currentQueue.readers", "globalLock.currentQueue.writers")}
-    				}
-    %}
-    {% set graf_l = [graf_l for graf_l in OrderedDict(sorted(grafs.items(), key=lambda v: v[0])).values()] %}        
+     
     <script>
         $(function() {
             $( "#from" ).datepicker({
@@ -61,7 +55,7 @@
         			{
         				title: plot_title,
         				axes:{xaxis:{renderer:$.jqplot.DateAxisRenderer,
-        							 tickOptions:{formatString:'%Y/%m/%d %H:%M:%S'},
+        							 tickOptions:{formatString:'%Y/%m/%d %H:%M'},
         							 min: xmin,
         							 max: xmax
         				            }
@@ -89,40 +83,36 @@
         <input type="text" id="to" name="to" />
         <input type="button" value="Submit  ">
     </form>
-    <lable id="message_lab"></lable>
+    <lable id="message_lab"></lable>    
   	{% for host, dbs in statistics.items() %}
-  		{{ host }}<br>
+  		Host name: {{ host }}<br>
   		{% for db, grafs in dbs.items() %}
-  			{{ db }}<br>
-  			<script>
-  				var series_vals = new Array();
-  			</script>
+  			datebase name: {{ db }}<br>  			
   			{% for graf, stats in grafs.items() %}
-  				{% set plot_id = ''.join(''.join(host.split('.')).split(':')) %}
-  				{{ graf }}<br>
+  				{% set plot_id = ''.join(''.join(host.split('.')).split(':')) %}  				  				
   				<script>
   					var series = new Array();
-  					var series_val = new Array();
+  					var series_vals = new Array();
   				</script>
-  				{% for series_nm, stat in stats.items() %}
-  					<script>
-  						series.push({label:"{{series_nm}}"});  						  						
+  				{% for series_nm, stat in stats.items() %}    						
+  					<script>  						
+  						series.push({label:"{{series_nm}}"});
+  						var vals = new Array();  						  						  						
   					</script>  					  					
-  					{% for xaxis, yaxis in stat.items() %}    									
+  					{% for xaxis, yaxis in stat.items() %}  						
   						<script>
-  							series_val.push(["{{xaxis}}", {{yaxis}}]);
+  							vals.push(["{{xaxis}}", {{yaxis}}]);
   						</script>
   					{% end %}
-  					<script>
-  						series_vals.push(series_val);
-  					</script>
-  				{% end %}
+  				<br>  			
   				<script>
-  					//alert(series_vals);
-  				</script>
+  					series_vals.push(vals);  					
+  				</script>		
+  				{% end %}  				
   				<div id="plot_{{plot_id}}_{{db}}_{{graf}}" style="width: 90%;"></div>  				
-  			<script>  				 
-  				draw_graf("plot_{{plot_id}}_{{db}}_{{graf}}", [series_val], "{{graf}}",series); 
+  			<script>  				   		
+  				//alert(series_vals);	
+  				draw_graf("plot_{{plot_id}}_{{db}}_{{graf}}", series_vals, "{{graf}}",series); 
   			</script>
   			{% end %}
   		{% end %} 
