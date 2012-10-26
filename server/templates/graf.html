@@ -9,13 +9,7 @@
     <script type="text/javascript" src="{{ static_url('jqplot.highlighter.min.js') }}"></script>
     <link rel="stylesheet" type="text/css" href="{{ static_url('css/jquery-ui-1.9.0.custom.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ static_url('css/jquery.jqplot.min.css') }}">
-    {% from collections import OrderedDict %}
-    {% set grafs = {0:{"backgroundFlushing":("backgroundFlushing.flushes",)},
-    				1:{"mem":("mem.virtual","mem.mapped")},
-    				2:{"globalLock":("globalLock.currentQueue.readers", "globalLock.currentQueue.writers")}
-    				}
-    %}
-    {% set graf_l = [graf_l for graf_l in OrderedDict(sorted(grafs.items(), key=lambda v: v[0])).values()] %}        
+     
     <script>
         $(function() {
             $( "#from" ).datepicker({
@@ -55,17 +49,17 @@
                         }
             });
         });
-        $(function(){
-        	$.jqplot("graf_exmpl", [ [
-        						[0,0], [1,2],
-        						[3,5.12],[5,13.1],
-        						[7,33.6],[9,85.9]
-        						] ]);	
-        });
-        function draw_graf(plot_name, plot_data, plot_title, plot_series){        	
+       
+        function draw_graf(plot_name, plot_data, plot_title, plot_series, xmin, xmax){        	
         	$.jqplot(plot_name,  plot_data ,
         			{
         				title: plot_title,
+        				axes:{xaxis:{renderer:$.jqplot.DateAxisRenderer,
+        							 tickOptions:{formatString:'%Y/%m/%d %H:%M'},
+        							 min: xmin,
+        							 max: xmax
+        				            }
+        				     },
         				legend:{
         					show: true,
         					location: "ne",
@@ -79,7 +73,7 @@
         			}
         			);
         }
-    </script>
+    </script>    
 </head>
 <body>
     <form method="get" action="GET_GRAF" name="form_get_graf" id="form_get_graf">
@@ -89,6 +83,7 @@
         <input type="text" id="to" name="to" />
         <input type="button" value="Submit  ">
     </form>
+<<<<<<< HEAD
     <lable id="message_lab"></lable>
   	{% set hosts = (hosts for hosts in statistics.keys()) %}
   	{% for host in hosts %}
@@ -101,5 +96,41 @@
   			{% end %}
   		{% end %}  		
   	{% end %}
+=======
+    <lable id="message_lab"></lable>    
+  	{% for host, dbs in statistics.items() %}
+  		Host name: {{ host }}<br>
+  		{% for db, grafs in dbs.items() %}
+  			datebase name: {{ db }}<br>  			
+  			{% for graf, stats in grafs.items() %}
+  				{% set plot_id = ''.join(''.join(host.split('.')).split(':')) %}  				  				
+  				<script>
+  					var series = new Array();
+  					var series_vals = new Array();
+  				</script>
+  				{% for series_nm, stat in stats.items() %}    						
+  					<script>  						
+  						series.push({label:"{{series_nm}}"});
+  						var vals = new Array();  						  						  						
+  					</script>  					  					
+  					{% for xaxis, yaxis in stat.items() %}  						
+  						<script>
+  							vals.push(["{{xaxis}}", {{yaxis}}]);
+  						</script>
+  					{% end %}
+  				<br>  			
+  				<script>
+  					series_vals.push(vals);  					
+  				</script>		
+  				{% end %}  				
+  				<div id="plot_{{plot_id}}_{{db}}_{{graf}}" style="width: 90%;"></div>  				
+  			<script>  				   		
+  				//alert(series_vals);	
+  				draw_graf("plot_{{plot_id}}_{{db}}_{{graf}}", series_vals, "{{graf}}",series); 
+  			</script>
+  			{% end %}
+  		{% end %} 
+  	{% end %}  	
+>>>>>>> e0707056549b65fce03a04e4a7acce2727d19a56
 </body>
 </html>
