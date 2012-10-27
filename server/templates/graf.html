@@ -58,7 +58,9 @@
         							 tickOptions:{formatString:'%Y/%m/%d %H:%M'},
         							 min: xmin,
         							 max: xmax
-        				            }
+        				            },
+        				      yaxis:{min: 0
+        				      		}
         				     },
         				legend:{
         					show: true,
@@ -83,20 +85,7 @@
         <input type="text" id="to" name="to" />
         <input type="button" value="Submit  ">
     </form>
-<<<<<<< HEAD
-    <lable id="message_lab"></lable>
-  	{% set hosts = (hosts for hosts in statistics.keys()) %}
-  	{% for host in hosts %}
-  		{{ host }}
-  		{% for db in statistics[host] %}
-  			{{db}}
-  			{% set stats = (stats for stats in statistics[host][db]) %}
-  			{% for grafs in stats%}
-  				{{ grafs }}
-  			{% end %}
-  		{% end %}  		
-  	{% end %}
-=======
+
     <lable id="message_lab"></lable>    
   	{% for host, dbs in statistics.items() %}
   		Host name: {{ host }}<br>
@@ -131,6 +120,6 @@
   			{% end %}
   		{% end %} 
   	{% end %}  	
->>>>>>> e0707056549b65fce03a04e4a7acce2727d19a56
+
 </body>
 </html>
