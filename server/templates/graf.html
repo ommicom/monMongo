@@ -7,6 +7,7 @@
     <script type="text/javascript" src="{{ static_url('jqplot.cursor.min.js') }}"></script>	
     <script type="text/javascript" src="{{ static_url('jqplot.dateAxisRenderer.min.js') }}"></script>
     <script type="text/javascript" src="{{ static_url('jqplot.highlighter.min.js') }}"></script>
+    <script type="text/javascript" src="{{ static_url('jquery.activity-indicator-1.0.0.min.js') }}"></script>
     <link rel="stylesheet" type="text/css" href="{{ static_url('css/jquery-ui-1.9.0.custom.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ static_url('css/jquery.jqplot.min.css') }}">
      
@@ -55,9 +56,8 @@
         			{
         				title: plot_title,
         				axes:{xaxis:{renderer:$.jqplot.DateAxisRenderer,
-        							 tickOptions:{formatString:'%Y/%m/%d %H:%M'},
-        							 min: xmin,
-        							 max: xmax
+        							 tickOptions:{formatString:'%H:%M'},       
+        							 min: xmin 							 
         				            },
         				      yaxis:{min: 0
         				      		}
@@ -75,9 +75,29 @@
         			}
         			);
         }
-    </script>    
+    </script>   
+    <style>
+    	.square {
+				width: 100%;
+				height: 100%;
+				float: left;
+				margin: 10px;
+				padding: 10px 20px;
+				color: #000;
+				background: #fff;
+				font-family: Helvetica, Arial, Sans-Serif;				
+				display: block;		
+				z-index: 65535;	
+				position: relative;	
+				}		
+    </style> 
 </head>
 <body>
+	<div id="loadbar" class="square"></div>
+	<script>
+		$("#loadbar").activity({segments: 12, width: 5.5, space: 6, length: 13, color: '#252525', speed: 1});
+	</script>	
+	<div style="z-index: 1;position: relative;">
     <form method="get" action="GET_GRAF" name="form_get_graf" id="form_get_graf">
         <label for="from">From</label>
         <input type="text" id="from" name="from" />
@@ -85,14 +105,15 @@
         <input type="text" id="to" name="to" />
         <input type="button" value="Submit  ">
     </form>
-
-    <lable id="message_lab"></lable>    
+    <lable id="message_lab"></lable>	    
+	{% from datetime import datetime %}    
   	{% for host, dbs in statistics.items() %}
   		Host name: {{ host }}<br>
   		{% for db, grafs in dbs.items() %}
   			datebase name: {{ db }}<br>  			
   			{% for graf, stats in grafs.items() %}
-  				{% set plot_id = ''.join(''.join(host.split('.')).split(':')) %}  				  				
+  				{% set plot_id = ''.join(''.join(host.split('.')).split(':')) %}
+  				{% set xmin = datetime.now() %}  	  							  			
   				<script>
   					var series = new Array();
   					var series_vals = new Array();
@@ -102,8 +123,11 @@
   						series.push({label:"{{series_nm}}"});
   						var vals = new Array();  						  						  						
   					</script>  					  					
-  					{% for xaxis, yaxis in stat.items() %}  						
-  						<script>
+  					{% for xaxis, yaxis in stat.items() %}
+  						{% if xmin>datetime.strptime(xaxis,'%Y/%m/%d %H:%M:%S') %}
+  							{% set xmin = datetime.strptime(xaxis,'%Y/%m/%d %H:%M:%S') %}
+  						{% end %}	
+  						<script>  							
   							vals.push(["{{xaxis}}", {{yaxis}}]);
   						</script>
   					{% end %}
@@ -114,12 +138,16 @@
   				{% end %}  				
   				<div id="plot_{{plot_id}}_{{db}}_{{graf}}" style="width: 90%;"></div>  				
   			<script>  				   		
-  				//alert(series_vals);	
-  				draw_graf("plot_{{plot_id}}_{{db}}_{{graf}}", series_vals, "{{graf}}",series); 
+  				//alert(series_vals);	  				
+  				draw_graf("plot_{{plot_id}}_{{db}}_{{graf}}", series_vals, "{{graf}}", series, "{{xmin.strftime('%Y/%m/%d %H:%M:%S')}}"); 
   			</script>
   			{% end %}
   		{% end %} 
   	{% end %}  	
-
+  	</div>
+	<script>
+		$("#loadbar").activity(false);
+		$("#loadbar").css({'display':'none'});		
+	</script>	
 </body>
 </html>
