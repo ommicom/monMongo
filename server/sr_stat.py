@@ -94,7 +94,8 @@ class GetGrafHandler(BaseHandler):
             cmd_mongo_list['query'] = {'host':host}
             mongos_ = yield gen.Task(self.mongodb.command, cmd_mongo_list)
             mongos = mongos_[0][0]['values']
-            for mongo in mongos:
+            
+            for mongo in mongos:                
                 res[host][mongo] = dict()                
                 stats_ = yield gen.Task(self.mongodb.statistics.find,{'host':host, 'mongodb':mongo, 'statistic.localTime':{'$gte':'{0}T00:00:00.000000'.format(from_), '$lt':'{0}T00:00:00.000000'.format(to_)}}, sort=[('statistic.localTime', 1)],  fields=fields)
                 
@@ -110,10 +111,8 @@ class GetGrafHandler(BaseHandler):
                                 xaxis_parts = xaxis.split('T')                                                                                            
                                 dt = datetime.datetime.strptime(' '.join(xaxis_parts), '%Y-%m-%d %H:%M:%S.%f') if len(xaxis_parts[1].split('.'))>1 else datetime.datetime.strptime(' '.join(xaxis_parts), '%Y-%m-%d %H:%M:%S')
                                 xaxis = dt.strftime('%Y/%m/%d %H:%M:%S')
-                                
-                            print xaxis
+                                                            
                             val = get_rec_val(stats['statistic'], graf_val_nm)
                             res[host][mongo][grafs['group']][graf_val_nm].update({xaxis:val})
-                                                              
-                
+                                                                      
         self.render('graf.html', statistics = res)
