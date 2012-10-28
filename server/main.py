@@ -1,6 +1,6 @@
 __author__ = 'Omic'
 __version__ = '0.7.2'
-__build__ = '3'
+__build__ = '4'
 
 import sys
 import logging
