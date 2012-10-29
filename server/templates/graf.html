@@ -112,10 +112,8 @@
     </form>
     <lable id="message_lab"></lable>	    
 	{% from datetime import datetime %}    
-  	{% for host, dbs in statistics.items() %}
-  		Host name: {{ host }}<br>
-  		{% for db, grafs in dbs.items() %}
-  			datebase name: {{ db }}<br>  			
+  	{% for host, dbs in statistics.items() %}  		
+  		{% for db, grafs in dbs.items() %}  			  			
   			{% for graf, stats in grafs.items() %}
   				{% set plot_id = ''.join(''.join(host.split('.')).split(':')) %}
   				{% set xmin = datetime.now() %}  	  							  			
@@ -144,7 +142,7 @@
   				<div id="plot_{{plot_id}}_{{db}}_{{graf}}" style="width: 90%;"></div>  				
   			<script>  				   		
   				//alert(series_vals);	  				
-  				draw_graf("plot_{{plot_id}}_{{db}}_{{graf}}", series_vals, "{{graf}}", series, "{{xmin.strftime('%Y/%m/%d %H:%M:%S')}}"); 
+  				draw_graf("plot_{{plot_id}}_{{db}}_{{graf}}", series_vals, "{{host}}/{{db}}/{{graf}}", series, "{{xmin.strftime('%Y/%m/%d %H:%M:%S')}}"); 
   			</script>
   			{% end %}
   		{% end %} 

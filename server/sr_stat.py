@@ -114,12 +114,15 @@ class GetStatHandler(BaseHandler):
     @gen.engine
     def get(self):
         def get_rate_val(vals, param):
-            dt1 = self.dt_convert(vals[0]['statistic']['localTime'])
-            dt2 = self.dt_convert(vals[1]['statistic']['localTime'])
-            sec_delta = ((dt1 - dt2).total_seconds())                        
-            x = get_rec_val(vals[0]['statistic'],param)
-            y = get_rec_val(vals[1]['statistic'],param)
-            return int((x-y)/sec_delta)
+            xy = list()
+            ddt = list()                        
+            
+            ddt.append(self.dt_convert(vals[0]['statistic']['localTime']))
+            ddt.append(self.dt_convert(vals[1]['statistic']['localTime']))
+            xy.append(get_rec_val(vals[0]['statistic'],param))
+            xy.append(get_rec_val(vals[1]['statistic'],param))            
+                        
+            return int(reduce(lambda res, x: res-x, xy)/reduce(lambda res, x: res-x, ddt).total_seconds())
 
         def get_direct_val(vals, param):
             return get_rec_val(vals[0]['statistic'],param)                    
@@ -160,21 +163,7 @@ class GetStatHandler(BaseHandler):
                         calc_act = calc_selector.get(group_val_nm.split(':')[1].upper(),get_direct_val)                                                                        
                         val = calc_act(stats_[0][0], group_val_nm.split(':')[0])                        
                         res[host][mongo][groups['group']][group_val_nm.split(':')[0]] = val 
-                        #print val
-                        #val1 = stats_[0][0][0]['statistic']
-                        #val2 = stats_[0][0][1]['statistic']
-                        #for stats in stats_[0][0]:
-                        #    xaxis = stats['statistic'][groups['xaxis']]                            
-                        #    if groups['xdt']:
-                        #        xaxis_parts = xaxis.split('T')                                                                                            
-                        #        dt = datetime.datetime.strptime(' '.join(xaxis_parts), '%Y-%m-%d %H:%M:%S.%f') if len(xaxis_parts[1].split('.'))>1 else datetime.datetime.strptime(' '.join(xaxis_parts), '%Y-%m-%d %H:%M:%S')
-                        #        print dt
-                        #        xaxis = dt.strftime('%Y/%m/%d %H:%M:%S')
-                        #    val = get_rec_val(stats['statistic'], group_val_nm)
-                        #    res[host][mongo][groups['group']][group_val_nm].update({xaxis:val})
-        print res
-        
-        
+
         self.render('stat.html', statistics=res)
 
 class GetGrafHandler(BaseHandler):
