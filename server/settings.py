@@ -4,9 +4,6 @@ log_settings = {'level':'info', 'outlet':'con'}
 table_val = ({"group":"opcounters", "yaxis":("opcounters.insert:rate", "opcounters.query:rate", "opcounters.command:rate", "version:"),"xaxis":"localTime", "xdt":True},
              {"group":"cursors", "yaxis":("cursors.timedOut:",),"xaxis":"localTime", "xdt":True}   
             )
-#graf_val = {'mem':({'param':'virtual', 'format':'{0:.0f}'},{'param':'mapped', 'format':'{0:.0f}'}),
-#            'backgroundFlushing':({'param':'flushes', 'format':'{0:.0f}'}),
-#            'globalLock':({'param':{'currentQueue':({'param':'total','format':'{0:.0f}'})}})}
 
 graf_val = (
              {"group":"backgroundFlushing", "yaxis":("backgroundFlushing.total_ms","backgroundFlushing.average_ms"),"xaxis":"localTime", "xdt": True},
