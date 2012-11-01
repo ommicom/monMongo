@@ -6,3 +6,7 @@
 *.log
 note.txt
 !.gitignore
+bin/*
+lib/*
+include/*
+build/*
