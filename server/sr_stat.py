@@ -44,52 +44,38 @@ class BaseHandler(web.RequestHandler):
     
     def dt_convert(self, dt):
         dt_part = dt.split('T')
-        return datetime.datetime.strptime(' '.join(dt_part), '%Y-%m-%d %H:%M:%S.%f') if len(dt_part[1].split('.'))>1 else datetime.datetime.strptime(' '.join(dt_part), '%Y-%m-%d %H:%M:%S')        
-                                
+        return datetime.datetime.strptime(' '.join(dt_part), '%Y-%m-%d %H:%M:%S.%f') if len(dt_part[1].split('.'))>1 else datetime.datetime.strptime(' '.join(dt_part), '%Y-%m-%d %H:%M:%S')
+                                            
+    def get_hosts_list(self, dt_gte=None, dt_lte=None):                
+        cmd_host_list = {'distinct':'statistics','key':'host'}        
+        if dt_gte and dt_lte:            
+            cmd_host_list['query'] = {'statistic.localTime':{'$gte':'{0}T00:00:00.000000'.format(dt_gte), '$lt':'{0}T00:00:00.000000'.format(dt_lte)}}
+        #print 'cmd_host_list=', cmd_host_list        
+        return gen.Task(self.mongodb.command, cmd_host_list)
     
-    @gen.engine
-    def get_data_(self, from_, to_, fields_, groups_list_):
-        
-        def get_rec_val(v, p):            
-            v_ = v            
-            for point in p.split("."):
-                v_ = v_[point]                                                   
-            return v_
-        
-        cmd_host_list = {'distinct':'statistics','key':'host'}
-        cmd_mongo_list = {'distinct':'statistics','key':'mongodb','query':{}}
-        hosts_ = yield gen.Task(self.mongodb.command, cmd_host_list)        
-        hosts = hosts_[0][0]['values']         
-        res = dict()
-        for host in hosts:      
-            res[host] = dict()                  
-            cmd_mongo_list['query'] = {'host':host}
-            mongos_ = yield gen.Task(self.mongodb.command, cmd_mongo_list)
-            mongos = mongos_[0][0]['values']
+    def get_mongodb_list(self, host, dt_gte=None, dt_lte=None):
+        cmd_mongodb_list = {'distinct':'statistics', 'key':'mongodb', 'query':{}}
+        cmd_mongodb_list['query']['host'] = host
+        if dt_gte and dt_lte:            
+            cmd_mongodb_list['query']['statistic.localTime']={'$gte':'{0}T00:00:00.000000'.format(dt_gte), '$lt':'{0}T00:00:00.000000'.format(dt_lte)}        
+        #print 'cmd_mongodb_list=', cmd_mongodb_list
+        return gen.Task(self.mongodb.command, cmd_mongodb_list)              
+    
+    def get_stats(self, host, mongo, dt_gte=None, dt_lte=None, fields=None, sort=None, limit=None):        
+        cmd_stats_list = {'query':{}}        
+        if fields:
+            cmd_stats_list['fields'] = fields
+        if sort:
+            cmd_stats_list['sort'] = sort
+        if limit:
+            cmd_stats_list['limit'] = limit
+        cmd_stats_list['query']['host'] = host
+        cmd_stats_list['query']['mongodb'] = mongo        
+        if dt_gte and dt_lte:
+            cmd_stats_list['query']['statistic.localTime'] = {'$gte':'{0}T00:00:00.000000'.format(dt_gte), '$lt':'{0}T00:00:00.000000'.format(dt_lte)}
+        print 'cmd_stats_list=', cmd_stats_list
+        return gen.Task(self.mongodb.command, cmd_stats_list)                    
             
-            for mongo in mongos:                
-                res[host][mongo] = dict()                
-                stats_ = yield gen.Task(self.mongodb.statistics.find,{'host':host, 'mongodb':mongo, 'statistic.localTime':{'$gte':'{0}T00:00:00.000000'.format(from_), '$lt':'{0}T00:00:00.000000'.format(to_)}}, sort=[('statistic.localTime', 1)],  fields=fields_)
-                
-                for groups in groups_list_:
-                    res[host][mongo][groups['group']] = dict()
-                    
-                    for group_val_nm in groups['yaxis']:
-                        res[host][mongo][groups['group']][group_val_nm] = dict()
-                        
-                        for stats in stats_[0][0]:
-                            xaxis = stats['statistic'][groups['xaxis']]
-                            if groups['xdt']:
-                                xaxis_parts = xaxis.split('T')                                                                                            
-                                dt = datetime.datetime.strptime(' '.join(xaxis_parts), '%Y-%m-%d %H:%M:%S.%f') if len(xaxis_parts[1].split('.'))>1 else datetime.datetime.strptime(' '.join(xaxis_parts), '%Y-%m-%d %H:%M:%S')
-                                xaxis = dt.strftime('%Y/%m/%d %H:%M:%S')
-                            val = get_rec_val(stats['statistic'], group_val_nm)
-                            res[host][mongo][groups['group']][group_val_nm].update({xaxis:val})
-        self.data_ = res
-        #yield res                                                  
-        
-
-       
             
 class CommonInfoHandler(BaseHandler):
     @web.asynchronous
@@ -138,11 +124,23 @@ class GetStatHandler(BaseHandler):
         from_ = self.get_argument('from', datetime.datetime.now().strftime('%Y-%m-%d'))
         to_ = self.get_argument('to', (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
         fields_ = self.get_fields_(self.application.val['table'], 'statistic')        
-        groups_list_ = self.application.val['table']
+        groups_list_ = self.application.val['table']        
         
-        cmd_host_list = {'distinct':'statistics','key':'host'}
-        cmd_mongo_list = {'distinct':'statistics','key':'mongodb','query':{}}
+        res = dict()
         
+        hosts = yield self.get_hosts_list(from_, to_)
+        for host in hosts[0][0]['values']:            
+            res[host] = dict()
+            mongos = yield self.get_mongodb_list(host, from_, to_)
+            for mongo in mongos[0][0]['values']:
+                res[host][mongo] = dict()       
+                stats_ = yield self.get_stats(host, mongo, None, None, None, None, None)
+                print stats_[0]
+                #for stat in stats_[0][0]['values']:
+                #    print stat 
+        
+        #cmd_mongo_list = {'distinct':'statistics','key':'mongodb','query':{}}
+        """
         hosts_ = yield gen.Task(self.mongodb.command, cmd_host_list)        
         hosts = hosts_[0][0]['values']         
         res = dict()
@@ -155,15 +153,18 @@ class GetStatHandler(BaseHandler):
             
             for mongo in mongos:                
                 res[host][mongo] = dict()                
-                stats_ = yield gen.Task(self.mongodb.statistics.find,{'host':host, 'mongodb':mongo, 'statistic.localTime':{'$gte':'{0}T00:00:00.000000'.format(from_), '$lt':'{0}T00:00:00.000000'.format(to_)}}, sort=[('statistic.localTime', -1)],  fields=fields_, limit=2)                       
+                stats_ = yield gen.Task(self.mongodb.statistics.find,{'host':host, 'mongodb':mongo, 'statistic.localTime':{'$gte':'{0}T00:00:00.000000'.format(from_), '$lt':'{0}T00:00:00.000000'.format(to_)}}, sort=[('statistic.localTime', -1)],  fields=fields_, limit=2)
+                if len(stats_[0][0])==0:
+                    continue                       
                 for groups in groups_list_:
                     res[host][mongo][groups['group']] = dict()
                     
                     for group_val_nm in groups['yaxis']:                        
-                        calc_act = calc_selector.get(group_val_nm.split(':')[1].upper(),get_direct_val)                                                                        
+                        calc_act = calc_selector.get(group_val_nm.split(':')[1].upper(),get_direct_val) 
+                                                                                               
                         val = calc_act(stats_[0][0], group_val_nm.split(':')[0])                        
                         res[host][mongo][groups['group']][group_val_nm.split(':')[0]] = val 
-
+        """
         self.render('stat.html', statistics=res)
 
 class GetGrafHandler(BaseHandler):
