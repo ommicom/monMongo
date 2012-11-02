@@ -45,11 +45,13 @@ class BaseHandler(web.RequestHandler):
     def dt_convert(self, dt):
         dt_part = dt.split('T')
         return datetime.datetime.strptime(' '.join(dt_part), '%Y-%m-%d %H:%M:%S.%f') if len(dt_part[1].split('.'))>1 else datetime.datetime.strptime(' '.join(dt_part), '%Y-%m-%d %H:%M:%S')
-                                    
-    @gen.engine
+                                        
     def get_hosts_list(self, dt_gte=datetime.datetime.now(), dt_lte=None):
-        cmd_host_list = {'distinct':'statistics', 'key':'host', 'query':{}}        
-        #hosts_ = yield gen.Task(self.mongodb.command, cmd_host_list)    
+        if not dt_lte:
+            dt_lte =  datetime.datetime.now() + datetime.timedelta(days=1)
+        cmd_host_list = {'distinct':'statistics', 'key':'host', 'query':{'statistic.localTime':{'$gte':'{0}T00:00:00.000000'.format(dt_gte.strftime('%Y-%d-%m')), '$lt':'{0}T00:00:00.000000'.format(dt_lte.strftime('%Y-%m-%d'))}}}        
+        yield gen.Task(self.mongodb.command, cmd_host_list)
+            
             
 class CommonInfoHandler(BaseHandler):
     @web.asynchronous
