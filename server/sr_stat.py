@@ -61,20 +61,11 @@ class BaseHandler(web.RequestHandler):
         #print 'cmd_mongodb_list=', cmd_mongodb_list
         return gen.Task(self.mongodb.command, cmd_mongodb_list)              
     
-    def get_stats(self, host, mongo, dt_gte=None, dt_lte=None, fields=None, sort=None, limit=None):        
-        cmd_stats_list = {'query':{}}        
-        if fields:
-            cmd_stats_list['fields'] = fields
-        if sort:
-            cmd_stats_list['sort'] = sort
-        if limit:
-            cmd_stats_list['limit'] = limit
-        cmd_stats_list['query']['host'] = host
-        cmd_stats_list['query']['mongodb'] = mongo        
+    def get_stats(self, host, mongo, dt_gte=None, dt_lte=None, fields_=None, sort_=None, limit_=0):
+        cmd_stats_list = {'host':host, 'mongodb':mongo}
         if dt_gte and dt_lte:
-            cmd_stats_list['query']['statistic.localTime'] = {'$gte':'{0}T00:00:00.000000'.format(dt_gte), '$lt':'{0}T00:00:00.000000'.format(dt_lte)}
-        print 'cmd_stats_list=', cmd_stats_list
-        return gen.Task(self.mongodb.command, cmd_stats_list)                    
+            cmd_stats_list.update({'statistic.localTime':{'$gte':'{0}T00:00:00.000000'.format(dt_gte), '$lt':'{0}T00:00:00.000000'.format(dt_lte)}})
+        return gen.Task(self.mongodb.statistics.find, cmd_stats_list, fields=fields_, sort=sort_, limit=limit_)                    
             
             
 class CommonInfoHandler(BaseHandler):
@@ -121,7 +112,8 @@ class GetStatHandler(BaseHandler):
         
         calc_selector = {'RATE':get_rate_val}
         
-        from_ = self.get_argument('from', datetime.datetime.now().strftime('%Y-%m-%d'))
+        #from_ = self.get_argument('from', datetime.datetime.now().strftime('%Y-%m-%d'))
+        from_ = self.get_argument('from', (datetime.datetime.now()+datetime.timedelta(days=-1)).strftime('%Y-%m-%d'))
         to_ = self.get_argument('to', (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
         fields_ = self.get_fields_(self.application.val['table'], 'statistic')        
         groups_list_ = self.application.val['table']        
@@ -134,8 +126,12 @@ class GetStatHandler(BaseHandler):
             mongos = yield self.get_mongodb_list(host, from_, to_)
             for mongo in mongos[0][0]['values']:
                 res[host][mongo] = dict()       
-                stats_ = yield self.get_stats(host, mongo, None, None, None, None, None)
-                print stats_[0]
+                stats_ = yield self.get_stats(host, mongo, from_, to_, None, None)
+                if len(stats_[0][0]) == 0:
+                    continue
+                #groups = [groups for groups in groups_list_ if ]
+                for groups in groups_list_:
+                    print groups
                 #for stat in stats_[0][0]['values']:
                 #    print stat 
         
