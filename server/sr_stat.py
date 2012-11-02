@@ -45,12 +45,36 @@ class BaseHandler(web.RequestHandler):
     def dt_convert(self, dt):
         dt_part = dt.split('T')
         return datetime.datetime.strptime(' '.join(dt_part), '%Y-%m-%d %H:%M:%S.%f') if len(dt_part[1].split('.'))>1 else datetime.datetime.strptime(' '.join(dt_part), '%Y-%m-%d %H:%M:%S')
-                                        
-    def get_hosts_list(self, dt_gte=datetime.datetime.now(), dt_lte=None):
-        if not dt_lte:
-            dt_lte =  datetime.datetime.now() + datetime.timedelta(days=1)
-        cmd_host_list = {'distinct':'statistics', 'key':'host', 'query':{'statistic.localTime':{'$gte':'{0}T00:00:00.000000'.format(dt_gte.strftime('%Y-%d-%m')), '$lt':'{0}T00:00:00.000000'.format(dt_lte.strftime('%Y-%m-%d'))}}}        
-        yield gen.Task(self.mongodb.command, cmd_host_list)
+                                            
+    def get_hosts_list(self, dt_gte=None, dt_lte=None):                
+        cmd_host_list = {'distinct':'statistics','key':'host'}        
+        if dt_gte and dt_lte:            
+            cmd_host_list['query'] = {'statistic.localTime':{'$gte':'{0}T00:00:00.000000'.format(dt_gte), '$lt':'{0}T00:00:00.000000'.format(dt_lte)}}
+        #print 'cmd_host_list=', cmd_host_list        
+        return gen.Task(self.mongodb.command, cmd_host_list)
+    
+    def get_mongodb_list(self, host, dt_gte=None, dt_lte=None):
+        cmd_mongodb_list = {'distinct':'statistics', 'key':'mongodb', 'query':{}}
+        cmd_mongodb_list['query']['host'] = host
+        if dt_gte and dt_lte:            
+            cmd_mongodb_list['query']['statistic.localTime']={'$gte':'{0}T00:00:00.000000'.format(dt_gte), '$lt':'{0}T00:00:00.000000'.format(dt_lte)}        
+        #print 'cmd_mongodb_list=', cmd_mongodb_list
+        return gen.Task(self.mongodb.command, cmd_mongodb_list)              
+    
+    def get_stats(self, host, mongo, dt_gte=None, dt_lte=None, fields=None, sort=None, limit=None):        
+        cmd_stats_list = {'query':{}}        
+        if fields:
+            cmd_stats_list['fields'] = fields
+        if sort:
+            cmd_stats_list['sort'] = sort
+        if limit:
+            cmd_stats_list['limit'] = limit
+        cmd_stats_list['query']['host'] = host
+        cmd_stats_list['query']['mongodb'] = mongo        
+        if dt_gte and dt_lte:
+            cmd_stats_list['query']['statistic.localTime'] = {'$gte':'{0}T00:00:00.000000'.format(dt_gte), '$lt':'{0}T00:00:00.000000'.format(dt_lte)}
+        print 'cmd_stats_list=', cmd_stats_list
+        return gen.Task(self.mongodb.command, cmd_stats_list)                    
             
             
 class CommonInfoHandler(BaseHandler):
@@ -100,11 +124,23 @@ class GetStatHandler(BaseHandler):
         from_ = self.get_argument('from', datetime.datetime.now().strftime('%Y-%m-%d'))
         to_ = self.get_argument('to', (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
         fields_ = self.get_fields_(self.application.val['table'], 'statistic')        
-        groups_list_ = self.application.val['table']
+        groups_list_ = self.application.val['table']        
         
-        cmd_host_list = {'distinct':'statistics','key':'host'}
-        cmd_mongo_list = {'distinct':'statistics','key':'mongodb','query':{}}
+        res = dict()
         
+        hosts = yield self.get_hosts_list(from_, to_)
+        for host in hosts[0][0]['values']:            
+            res[host] = dict()
+            mongos = yield self.get_mongodb_list(host, from_, to_)
+            for mongo in mongos[0][0]['values']:
+                res[host][mongo] = dict()       
+                stats_ = yield self.get_stats(host, mongo, None, None, None, None, None)
+                print stats_[0]
+                #for stat in stats_[0][0]['values']:
+                #    print stat 
+        
+        #cmd_mongo_list = {'distinct':'statistics','key':'mongodb','query':{}}
+        """
         hosts_ = yield gen.Task(self.mongodb.command, cmd_host_list)        
         hosts = hosts_[0][0]['values']         
         res = dict()
@@ -128,7 +164,7 @@ class GetStatHandler(BaseHandler):
                                                                                                
                         val = calc_act(stats_[0][0], group_val_nm.split(':')[0])                        
                         res[host][mongo][groups['group']][group_val_nm.split(':')[0]] = val 
-
+        """
         self.render('stat.html', statistics=res)
 
 class GetGrafHandler(BaseHandler):
