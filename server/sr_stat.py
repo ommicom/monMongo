@@ -41,11 +41,13 @@ class BaseHandler(web.RequestHandler):
                 pre_el.update(dict([[("{0}.{1}").format(prefix, el.split(':')[0]),1] for el in l]))                
         pre_el.update({'_id':0}) 
         return pre_el
-    
-    def dt_convert(self, dt):
-        dt_part = dt.split('T')
-        return datetime.datetime.strptime(' '.join(dt_part), '%Y-%m-%d %H:%M:%S.%f') if len(dt_part[1].split('.'))>1 else datetime.datetime.strptime(' '.join(dt_part), '%Y-%m-%d %H:%M:%S')        
-                                
+                                    
+    @gen.engine
+    def get_hosts_list(self, dt_gte=datetime.datetime.now(), dt_lte=None):
+        cmd_host_list = {'distinct':'statistics', 'key':'host', 'query':{}}        
+        #hosts_ = yield gen.Task(self.mongodb.command, cmd_host_list)
+        
+        
     
     @gen.engine
     def get_data_(self, from_, to_, fields_, groups_list_):
