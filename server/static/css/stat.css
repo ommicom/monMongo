@@ -1,1 +1,12 @@
-css for table present
+caption{
+	font-weight: bold;
+	color: gray;
+}
+.table_container{
+	width: 95%;
+	border: 1px solid silver;
+	s
+}
+.tr_headers{
+	background: silver;
+}

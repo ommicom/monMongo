@@ -30,7 +30,7 @@ def main():
     
     log.info('Start monMongo-server ver.{0}.{1} on {2}:{3}'.format(__version__, __build__, http_server, http_port))
     
-    val = dict(table=table_val, graf=graf_val)
+    val = dict(table=table_val, graf=graf_val, version = __version__, build = __build__)
     http = httpserver.HTTPServer(request_callback=Server(mongo_server, mongo_port, mongo_database, **val))
     http.listen(http_port, http_server)
     ioloop.IOLoop.instance().start()

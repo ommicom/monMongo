@@ -1,0 +1,32 @@
+{{ ver }}
+<br><br>
+<html>
+	<head>
+		<title>monMongo</title>
+		<link rel="stylesheet" type="text/css" href="{{ static_url('css/stat.css') }}">
+	</head>
+	<body>				
+		{% for host, dbs in statistics.items() %}
+			{% for db, groups in dbs.items() %}
+				{% for group, vals in groups.items() %}
+					<table id="table_{{ host.split(':')[0] }}_{{ db }}_{{ group }}" class="table_container">
+						<caption>{{ host }}/{{ db }}/{{ group }}</caption>
+						{% set params = vals.items() %}
+						{% set param_l = [param[0] for param in params] %}
+						{% set val_l = [param[1] for param in params] %}
+						<tr clss="tr_header">
+						{% for param in param_l %}
+							<td> {{ param }} </td>
+						{% end %}
+						</tr>  
+						<tr>
+						{% for val in val_l %}
+							<td> {{ val }} </td>
+						{% end %}
+						</tr>
+					</table>					
+				{% end %}
+			{% end %}
+		{% end %}
+	</body>
+</html>

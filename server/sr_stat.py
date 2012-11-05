@@ -17,7 +17,7 @@ class Server(web.Application):
         self.mongo_address = mongo_address
         self.mongo_port = mongo_port
         self.mongo_database = mongo_database
-        self.val = val
+        self.val = val        
         
         web.Application.__init__(self, handlers, **settiings)
         
@@ -49,8 +49,7 @@ class BaseHandler(web.RequestHandler):
     def get_hosts_list(self, dt_gte=None, dt_lte=None):                
         cmd_host_list = {'distinct':'statistics','key':'host'}        
         if dt_gte and dt_lte:            
-            cmd_host_list['query'] = {'statistic.localTime':{'$gte':'{0}T00:00:00.000000'.format(dt_gte), '$lt':'{0}T00:00:00.000000'.format(dt_lte)}}
-        #print 'cmd_host_list=', cmd_host_list        
+            cmd_host_list['query'] = {'statistic.localTime':{'$gte':'{0}T00:00:00.000000'.format(dt_gte), '$lt':'{0}T00:00:00.000000'.format(dt_lte)}}                
         return gen.Task(self.mongodb.command, cmd_host_list)
     
     def get_mongodb_list(self, host, dt_gte=None, dt_lte=None):
@@ -112,8 +111,8 @@ class GetStatHandler(BaseHandler):
               
         calc_selector = {'RATE':get_rate_val}
         
-        #from_ = self.get_argument('from', datetime.datetime.now().strftime('%Y-%m-%d'))
-        from_ = self.get_argument('from', (datetime.datetime.now()+datetime.timedelta(days=-1)).strftime('%Y-%m-%d'))
+        from_ = self.get_argument('from', datetime.datetime.now().strftime('%Y-%m-%d'))
+        #from_ = self.get_argument('from', (datetime.datetime.now()+datetime.timedelta(days=-1)).strftime('%Y-%m-%d'))
         to_ = self.get_argument('to', (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
         fields_ = self.get_fields_(self.application.val['table'], 'statistic')        
         groups_list_ = self.application.val['table']        
@@ -126,7 +125,7 @@ class GetStatHandler(BaseHandler):
             mongos = yield self.get_mongodb_list(host, from_, to_)
             for mongo in mongos[0][0]['values']:
                 res[host][mongo] = dict()       
-                stats_ = yield self.get_stats(host, mongo, from_, to_, fields_, None)
+                stats_ = yield self.get_stats(host, mongo, from_, to_, fields_, sort_=[('statistic.localTime', -1)])
                 if len(stats_[0][0]) == 0:
                     continue
                 
@@ -144,7 +143,7 @@ class GetStatHandler(BaseHandler):
   
         
         print res
-        self.render('stat.html', statistics=res)
+        self.render('stat.html', statistics=res, ver='{0} build {1}'.format(self.application.val['version'], self.application.val['build']))
 
 class GetGrafHandler(BaseHandler):
     @web.asynchronous
