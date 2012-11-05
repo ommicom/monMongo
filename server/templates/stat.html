@@ -1,11 +1,12 @@
-{{ ver }}
+monMongo ver.{{ ver }}
 <br><br>
 <html>
 	<head>
 		<title>monMongo</title>
 		<link rel="stylesheet" type="text/css" href="{{ static_url('css/stat.css') }}">
 	</head>
-	<body>				
+	<body>	
+		<center>					
 		{% for host, dbs in statistics.items() %}
 			{% for db, groups in dbs.items() %}
 				{% for group, vals in groups.items() %}
@@ -14,19 +15,20 @@
 						{% set params = vals.items() %}
 						{% set param_l = [param[0] for param in params] %}
 						{% set val_l = [param[1] for param in params] %}
-						<tr clss="tr_header">
+						<tr class="tr_param">
 						{% for param in param_l %}
-							<td> {{ param }} </td>
+							<td id="td_{{param.replace('.','_')}}" class="td_param"> {{ param }} </td>
 						{% end %}
 						</tr>  
 						<tr>
 						{% for val in val_l %}
-							<td> {{ val }} </td>
+							<td class="td_val"> {{ val }} </td>
 						{% end %}
 						</tr>
 					</table>					
 				{% end %}
 			{% end %}
 		{% end %}
+		</center>
 	</body>
 </html>

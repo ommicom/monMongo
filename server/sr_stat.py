@@ -107,7 +107,8 @@ class GetStatHandler(BaseHandler):
             return int(reduce(lambda res, x: res-x, xy)/reduce(lambda res, x: res-x, ddt).total_seconds())
 
         def get_direct_val(vals, param):
-            return self.get_rec_val(vals[0]['statistic'],param)                    
+            ret = self.get_rec_val(vals[0]['statistic'],param)             
+            return ret if isinstance(ret, basestring) else int(ret)                     
               
         calc_selector = {'RATE':get_rate_val}
         

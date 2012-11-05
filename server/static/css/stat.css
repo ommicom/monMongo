@@ -2,11 +2,23 @@ caption{
 	font-weight: bold;
 	color: gray;
 }
+td{
+	border: 1px solid silver;
+	width: 16%;
+}
 .table_container{
 	width: 95%;
 	border: 1px solid silver;
-	s
 }
-.tr_headers{
-	background: silver;
+.tr_param{
+	background: #e8e8e8;	
+}
+.td_param{
+	text-align: center;
+}
+.td_val{
+	text-align: center;
+}
+#std_opcounters_insert{
+	color: red;
 }
